@@ -1,0 +1,42 @@
+#specify docker as dependency
+#build test version of React + test
+#build prod versions of all project
+#push all to docker hub
+#tell EB to update
+
+sudo: required
+language: generic
+
+services:
+  - docker
+
+before_install:
+  - docker build -t nathanwkwong/react-test -f ./client/Dockerfile.dev ./client
+
+script: #exit other than 0 -> fail 
+  - docker run -e CI=true nathanwkwong/react-test npm test
+
+after_success:
+  - docker build -t nathanwkwong/multi-client ./client
+  - docker build -t nathanwkwong/multi-nginx ./nginx
+  - docker build -t nathanwkwong/multi-server ./server
+  - docker build -t nathanwkwong/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
+  - docker push nathanwkwong/multi-client
+  - docker push nathanwkwong/multi-nginx
+  - docker push nathanwkwong/multi-server
+  - docker push nathanwkwong/multi-worker
+
+deploy:
+  provider: elasticbeanstalk
+  region: us-west-1
+  app: multi-docker
+  env: MultiDocker-env
+  bucket_name: elasticbeanstalk-us-west-1-306476627547
+  bucket_path: docker-multi
+  on:
+    branch: master
+  access_key_id: $AWS_ACCESS_KEY
+  secret_access_key: $AWS_SECRET_KEY
