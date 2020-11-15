@@ -1,0 +1,92 @@
+version: "3"
+services:
+  postgres: #service name as domain <- can be accessed
+    image: "postgres:latest"
+    environment:
+      - POSTGRES_PASSWORD=postgres_password
+  redis:
+    image: "redis:latest"
+  nginx:
+    depends_on:
+      - api
+      - client
+    restart: always
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./nginx
+    ports:
+      - "3050:80"
+  api:
+    depends_on:
+      - postgres
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./server
+    volumes:
+      - /app/node_modules
+      - ./server:/app
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PGUSER=postgres
+      - PGHOST=postgres
+      - PGDATABASE=postgres
+      - PGPASSWORD=postgres_password
+      - PGPORT=5432
+  client:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./client
+    volumes:
+      - /app/node_modules #bookmarking, prevent override
+      - ./client:/app #/app reference to ./server
+  worker:
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379 #check from doc
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./worker
+    volumes:
+      - /app/node_modules
+      - ./worker:/app
+
+
+#set env variable at run time
+#build: preparation of the image
+#run: take image an instance it as an container + set env variables to container
+
+#variableName=value (set in the container at run time)
+#variableName (set a variable in the container at run time, taking value from local)
+
+#may need start up twice
+
+
+#port mapping from nginx in dev environment
+#react: /index.html + /main.js -> /
+
+#nginx(container), mapping: req path
+#with /api/ -> route to express
+#with / -> route to react
+
+#express api: /api/values/all -> nginx(after chop) -> values/all
+#express api(cal from worker): /api/values/current -> nginx(after chop) -> /values/current
+
+#M2: react:4000 + express:3000
+# bad in production, e.g. /api/values/current:3000, because port can easily change
+
+# config rules to nginx: default.conf to
+# outside -> nginx -> server'upstream' server at client :3000
+# outside -> nginx -> server'upstream' server at server :5000
+
+# listen on port 80
+# '/' -> send to client upstream
+# '/api' -> send to server upstream
+
+#single container(problem: build in aws EB)
+#code -> github -> Travis pull(auto) -> build and test -> push to AWS EB -> build and deploy
+
+#multi container(good: no need depends on EB to build image)
+#code -> git hub -> Travis pull(auto) -> build test image and test
+# -> build prod images(a single file) -> push prod images to Docker hub
+# -> Travis pushes project to aws EB -> EB pulls images from Docker hub and deploys
