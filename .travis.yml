@@ -13,7 +13,7 @@ services:
 before_install:
   - docker build -t nathanwkwong/react-test -f ./client/Dockerfile.dev ./client
 
-script: #exit other than 0 -> fail 
+script: #exit other than 0 -> fail
   - docker run -e CI=true nathanwkwong/react-test npm test
 
 after_success:
@@ -28,15 +28,72 @@ after_success:
   - docker push nathanwkwong/multi-nginx
   - docker push nathanwkwong/multi-server
   - docker push nathanwkwong/multi-worker
+# deploy:
+#   provider: elasticbeanstalk
+#   region: us-west-1
+#   app: multi-docker
+#   env: MultiDocker-env
+#   bucket_name: elasticbeanstalk-us-west-1-306476627547
+#   bucket_path: docker-multi
+#   on:
+#     branch: master
+#   access_key_id: $AWS_ACCESS_KEY
+#   secret_access_key: $AWS_SECRET_KEY
 
-deploy:
-  provider: elasticbeanstalk
-  region: us-west-1
-  app: multi-docker
-  env: MultiDocker-env
-  bucket_name: elasticbeanstalk-us-west-1-306476627547
-  bucket_path: docker-multi
-  on:
-    branch: master
-  access_key_id: $AWS_ACCESS_KEY
-  secret_access_key: $AWS_SECRET_KEY
+#Dockerrun.aws.json, container definition, pull docker from docker hub -> ...
+#Elastic container service task definition: instructions on how to run a single container
+#https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html
+
+# {
+#   "name": "client", #name of container in dashboard
+#   "image": "nathanwkwong/multi-client", #image to use
+#   "hostname": "client", #service name, can also be accessed by nginx default.conf; optional field
+#   "essential": false, #false by default - no as essential; 
+#       true - crash -> close all other containers; 
+#       at least on as essential
+#   "memory": 128
+# },
+
+
+    # {
+    #   "name": "nginx",
+    #   "image": "nathanwkwong/multi-nginx",
+    #   "hostname": "nginx",
+    #   "essential": true,
+    #   "portMappings": [
+    #     {
+    #       "hostPort": 80, #open a port from the machine
+    #       "containerPort": 80 #map to the container; 80 as the default port listen inside the container
+    #     }
+    #   ],
+    #   "links": ["client", "server"], #name; unidirectional
+    #   "memory": 128
+    # }
+
+# AWS Elastic Cache - redis
+# - auto create and maintains Redis instances
+# - easy to scale + built in logging + maintenance
+# - better security, easier to migrate off of EB with(because of decoupling)
+
+#AWS Relational Data Service (RDS) - postgres
+# - ...
+# - auto backups and rollbacks
+
+#region, one 'default' VPC per region
+#virtual private cloud connecting aws services
+#create Security Group (Firewall Rules)
+#sources internet traffic can connect services inside the VPC
+
+#e.g. EB instance -> open :80 source 0.0.0.0/0 (in bound rules to all)
+#source 0.0.0.0/0 (outbound rules to all) 
+
+
+
+
+
+
+
+
+
+
+
