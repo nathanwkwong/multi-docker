@@ -90,3 +90,16 @@ services:
 #code -> git hub -> Travis pull(auto) -> build test image and test
 # -> build prod images(a single file) -> push prod images to Docker hub
 # -> Travis pushes project to aws EB -> EB pulls images from Docker hub and deploys
+
+#db name: fibvalues
+#username: postgres
+#password: postgrespassowrd
+
+#PostgreSQL + Free tier + 
+#DB instance identifier: multi-docker-postgres
+#t2.micro
+#20GB, 50 autoscale
+#connectivity: Default VPC
+#VPC security group: new
+#database name: fibvalues
+#backup: 7days(default)

@@ -28,17 +28,18 @@ after_success:
   - docker push nathanwkwong/multi-nginx
   - docker push nathanwkwong/multi-server
   - docker push nathanwkwong/multi-worker
-# deploy:
-#   provider: elasticbeanstalk
-#   region: us-west-1
-#   app: multi-docker
-#   env: MultiDocker-env
-#   bucket_name: elasticbeanstalk-us-west-1-306476627547
-#   bucket_path: docker-multi
-#   on:
-#     branch: master
-#   access_key_id: $AWS_ACCESS_KEY
-#   secret_access_key: $AWS_SECRET_KEY
+deploy:
+  edge: true
+  provider: elasticbeanstalk
+  region: ap-northeast-2
+  app: multi-docker
+  env: MultiDocker-env
+  bucket_name: elasticbeanstalk-ap-northeast-2-403354037318
+  bucket_path: docker-multi
+  on:
+    branch: master
+  access_key_id: $AWS_ACCESS_KEY
+  secret_access_key: $AWS_SECRET_KEY
 
 #Dockerrun.aws.json, container definition, pull docker from docker hub -> ...
 #Elastic container service task definition: instructions on how to run a single container
@@ -87,13 +88,39 @@ after_success:
 #e.g. EB instance -> open :80 source 0.0.0.0/0 (in bound rules to all)
 #source 0.0.0.0/0 (outbound rules to all) 
 
+#setting: (EB, RDS, EC)allow any traffic from any other aws service that has this security group
 
+#elasticahe: cluster
+# un check enabled
+#node type: t2.micro
+#replicase: 0
 
+#subnet group
+#name: redis-group
+#VPC ID: default
+#Security groups: default
 
+#create security group
+# group name: 
+# description: 
+# VPC: default
 
+#inbound rules: TCP, port range source -> security group
+#outbound rules
 
+#set services' security group:
+#elasticache: actions -> modify -> select multi-docker security group
+#no need maintenance window
+ 
+#rds -> instnaces -> select db -> modify -> security group 
 
+#ebs -> configuration -> instances -> ec2 security groups
 
+#connect all aws services:
+# ebs -> configuration -> software -> add
+# elasticache: REDIS_HOST - primary endpoint(no need port)
+# available to all containers
 
+# env variables for containers auto mapped from docker-compose.yml to dockerrun.aws.json
 
-
+#IAM -> create IAM user -> allow all ECS related service(at most 10) -> add AWS access and secret KEY to traivs
