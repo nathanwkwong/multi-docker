@@ -103,3 +103,24 @@ services:
 #VPC security group: new
 #database name: fibvalues
 #backup: 7days(default)
+
+#clean
+#ebs: -> application -> actions -> delete application
+#rds: -> db instance -> select -> action -> delete
+      # -> no final snapshot -> delete
+#ec: -> redis -> select instance -> action -> delete
+
+#security group: -> vpc -> security group 
+  # -> select the groups(multi-docker, MultiDocker-env, rds-lunch-wizard)
+  # -> action -> delete
+#IAM -> select user -> action -> delete -> clean deploy key
+
+#problem of ebs scaling: copy of all containers for each scale 
+#k8s cluster: 
+  # master(control and config) + node(s) - VM/physical computer to run different containers
+  # load balancer <-> request
+  #dev capacity - minikube - cli to set up small scale k8s on local computer
+    # - minikube(local ONLY) -> just create and run nodes, VMs(run containers)
+    # - kubectl(both dev and prod) -> manage k8s cluster 
+    # - install Kubectl, VM driver virtualbox(create VM), minikube(run a single node on VM)
+  #prod - 'managed solutions', e.g. EKS or GKE or do it yourself
